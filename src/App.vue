@@ -4,7 +4,22 @@ import LessonsPage from "./LessonsPage.vue";
 import CartPage from "./CartPage.vue";
 import { cartCount } from "./cartStore";
 
+// FONT AWESOME
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import {
+  faMagnifyingGlass,
+  faBasketShopping,
+} from "@fortawesome/free-solid-svg-icons";
+
+// register icons in the shared library
+library.add(faMagnifyingGlass, faBasketShopping);
+
+// which screen is visible
 const currentPage = ref("home");
+
+// search text on the HOME hero
+const searchTerm = ref("");
 
 function showHome() {
   currentPage.value = "home";
@@ -16,6 +31,11 @@ function showLessons() {
 
 function showCart() {
   currentPage.value = "cart";
+}
+
+// when user searches from the hero
+function submitSearch() {
+  currentPage.value = "lessons";
 }
 </script>
 
@@ -41,13 +61,19 @@ function showCart() {
             Expert tutors. Flexible schedules. Better grades. 📚
           </p>
 
+          <!-- SEARCH -->
           <div class="search-container">
             <input
               type="text"
               class="search-bar"
+              v-model="searchTerm"
               placeholder="Search for Math, English, Science..."
+              @keyup.enter="submitSearch"
             />
-            <span class="search-icon">🔍</span>
+            <!-- FontAwesome search icon as a button -->
+            <button class="search-icon-button" @click="submitSearch">
+              <FontAwesomeIcon :icon="faMagnifyingGlass" />
+            </button>
           </div>
 
           <button class="cta-button" @click="showLessons">
@@ -129,16 +155,23 @@ function showCart() {
         </footer>
       </section>
 
-      <!-- LESSONS PAGE -->
-      <LessonsPage v-else-if="currentPage === 'lessons'" />
+      <!-- LESSONS PAGE (gets the search text once when you go here) -->
+      <LessonsPage
+        v-else-if="currentPage === 'lessons'"
+        :initial-search="searchTerm"
+      />
 
       <!-- CART PAGE -->
       <CartPage v-else-if="currentPage === 'cart'" />
     </main>
 
-    <!-- FLOATING CART BUBBLE -->
-    <button class="cart-bubble" @click="showCart">
-      🛒
+    <!-- FLOATING CART BUBBLE – ONLY ON LESSONS PAGE -->
+    <button
+      v-if="currentPage === 'lessons'"
+      class="cart-bubble"
+      @click="showCart"
+    >
+      <FontAwesomeIcon icon="basket-shopping" />
       <span v-if="cartCount > 0" class="cart-count">{{ cartCount }}</span>
     </button>
   </div>
@@ -149,7 +182,39 @@ function showCart() {
   min-height: 100vh;
 }
 
-/* Floating cart bubble */
+/* search layout */
+.search-container {
+  position: relative;
+  max-width: 650px;
+  width: 100%;
+  margin: 1.8rem auto;
+}
+
+.search-bar {
+  width: 100%;
+  padding: 1.1rem 1.4rem;
+  padding-right: 60px;
+  border-radius: 999px;
+  border: 2px solid #e0e0e0;
+  font-size: 1rem;
+}
+
+.search-icon-button {
+  position: absolute;
+  right: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: #4a5759;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* floating cart bubble */
 .cart-bubble {
   position: fixed;
   right: 1.5rem;
@@ -157,7 +222,7 @@ function showCart() {
   width: 56px;
   height: 56px;
   border-radius: 999px;
-  background: #4A5759;
+  background: #709775;
   color: white;
   border: none;
   display: flex;
@@ -176,8 +241,8 @@ function showCart() {
   min-width: 22px;
   height: 22px;
   border-radius: 999px;
-  background: #EDAFB8;
-  color: #4A5759;
+  background: #edafb8;
+  color: #4a5759;
   font-size: 0.8rem;
   font-weight: 700;
   display: flex;

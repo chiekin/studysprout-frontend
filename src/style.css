@@ -44,7 +44,7 @@ header {
   position: sticky;
   top: 0;
   z-index: 100;
-  border-bottom: 2px solid #4A5759;
+  border-bottom: 2px solid #B0C4B1;
 }
 
 nav {
@@ -309,10 +309,10 @@ footer {
   position: fixed;
   right: 1.5rem;
   bottom: 1.5rem;
-  width: 56px;
-  height: 56px;
+  width: 60px;
+  height: 60px;
   border-radius: 999px;
-  background: #4A5759;
+  background: #709775;
   color: white;
   border: none;
   display: flex;
@@ -339,6 +339,12 @@ footer {
   align-items: center;
   justify-content: center;
 }
+
+.cart-bubble svg {
+  width: 40px;
+  height: 40px;
+}
+
 
 /* MOBILE / APP-LIKE */
 
