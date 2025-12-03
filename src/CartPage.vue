@@ -4,6 +4,7 @@ import { cartState, cartTotal, removeOneFromCart, clearCart } from "./cartStore"
 
 const customerName = ref("");
 const customerPhone = ref("");
+const customerEmail = ref(""); // ✅ NEW
 const isSubmitting = ref(false);
 const successMessage = ref("");
 const errorMessage = ref("");
@@ -12,13 +13,27 @@ const errorMessage = ref("");
 const isNameValid = computed(() =>
   /^[A-Za-z\s]+$/.test(customerName.value.trim())
 );
-const isPhoneValid = computed(() => /^[0-9]+$/.test(customerPhone.value.trim()));
+
+const isPhoneValid = computed(() =>
+  /^[0-9]+$/.test(customerPhone.value.trim())
+);
+
+// ✅ simple email pattern (not perfect, but good enough for front-end)
+const isEmailValid = computed(() => {
+  const email = customerEmail.value.trim();
+  if (!email) return false;
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailPattern.test(email);
+});
+
 const isFormValid = computed(
   () =>
     customerName.value.trim().length > 0 &&
     customerPhone.value.trim().length > 0 &&
+    customerEmail.value.trim().length > 0 && // ✅ NEW
     isNameValid.value &&
     isPhoneValid.value &&
+    isEmailValid.value && // ✅ NEW
     cartState.items.length > 0
 );
 
@@ -32,6 +47,7 @@ async function submitOrder() {
   const orderPayload = {
     name: customerName.value.trim(),
     phone: customerPhone.value.trim(),
+    email: customerEmail.value.trim(), // ✅ NEW
     items: cartState.items.map((item) => ({
       lessonId: item._id,
       subject: item.subject,
@@ -96,6 +112,7 @@ async function submitOrder() {
     clearCart();
     customerName.value = "";
     customerPhone.value = "";
+    customerEmail.value = ""; // ✅ clear email as well
   } catch (err) {
     console.error("Checkout error:", err);
     errorMessage.value =
@@ -171,6 +188,20 @@ async function submitOrder() {
           />
           <p v-if="customerName && !isNameValid" class="field-error">
             Name must contain letters and spaces only.
+          </p>
+        </div>
+
+        <!-- ✅ NEW: email field -->
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input
+            id="email"
+            type="email"
+            v-model="customerEmail"
+            placeholder="you@example.com"
+          />
+          <p v-if="customerEmail && !isEmailValid" class="field-error">
+            Please enter a valid email address.
           </p>
         </div>
 
