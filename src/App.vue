@@ -48,7 +48,6 @@ function submitSearch() {
           <span class="sprout-icon">🌱</span>
           <span class="logo-text">Study Sprout</span>
         </div>
-        <button class="sign-in-btn">Sign In</button>
       </nav>
     </header>
 
