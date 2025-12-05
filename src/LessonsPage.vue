@@ -48,7 +48,7 @@ async function fetchSearch(term) {
     lessons.value = await res.json();
   } catch (err) {
     console.error(err);
-    error.value = "Search failed, please try again.";
+    error.value = "Failed to search lessons";
   } finally {
     loading.value = false;
   }
