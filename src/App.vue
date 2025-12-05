@@ -43,13 +43,14 @@ function submitSearch() {
   <div class="app-root">
     <!-- NAVIGATION (always visible) -->
     <header class="main-header">
-      <nav class="main-nav">
-        <div class="logo" @click="showHome">
-          <span class="sprout-icon">🌱</span>
-          <span class="logo-text">Study Sprout</span>
-        </div>
-      </nav>
-    </header>
+  <nav class="main-nav">
+    <div class="logo" @click="showHome">
+      <span class="sprout-icon">🌱</span>
+      <span class="logo-text">Study Sprout</span>
+    </div>
+  </nav>
+</header>
+
 
     <main>
       <!-- HOME PAGE -->
@@ -143,11 +144,7 @@ function submitSearch() {
           </div>
         </div>
 
-        <div class="cta-section">
-          <h2>Ready to get started?</h2>
-          <p>Join thousands of parents helping their children succeed</p>
-          <button class="cta-white-btn">Create Free Account</button>
-        </div>
+        
 
         <footer>
           <p>© 2024 Study Sprout • Helping children grow through learning 🌱</p>
