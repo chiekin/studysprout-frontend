@@ -1,23 +1,37 @@
 <script setup>
+// Core Vue reactivity + computed helpers
 import { ref, computed } from "vue";
-import { cartState, cartTotal, removeOneFromCart, clearCart } from "./cartStore";
+
+// Shared cart state and helpers
+import {
+  cartState,
+  cartTotal,
+  removeOneFromCart,
+  clearCart,
+} from "./cartStore";
+
+// Base URL for talking to the backend API
 import { API_BASE } from "./apiConfig";
 
+// Form fields (controlled inputs)
 const customerName = ref("");
 const customerPhone = ref("");
-const customerEmail = ref(""); // ✅ NEW
+const customerEmail = ref("");
+
+// UI state for feedback
 const isSubmitting = ref(false);
 const successMessage = ref("");
 const errorMessage = ref("");
 
-// simple validation
+// ---------- FORM VALIDATION ----------
+
+// Name: letters + spaces only
 const isNameValid = computed(() =>
   /^[A-Za-z\s]+$/.test(customerName.value.trim())
 );
 
-// ✅ improved phone validation:
-// - allows digits, spaces, +, (), -
-// - requires at least 10 digits overall
+// Phone: allow digits, +, spaces, brackets, dashes;
+// must contain at least 10 digits overall
 const isPhoneValid = computed(() => {
   const raw = customerPhone.value;
   const digits = raw.replace(/\D/g, "");
@@ -26,7 +40,7 @@ const isPhoneValid = computed(() => {
   return digits.length >= 10;
 });
 
-// ✅ simple email pattern (not perfect, but good enough for front-end)
+// Email: basic pattern check
 const isEmailValid = computed(() => {
   const email = customerEmail.value.trim();
   if (!email) return false;
@@ -34,29 +48,32 @@ const isEmailValid = computed(() => {
   return emailPattern.test(email);
 });
 
+// Overall form validity + cart not empty
 const isFormValid = computed(
   () =>
     customerName.value.trim().length > 0 &&
     customerPhone.value.trim().length > 0 &&
-    customerEmail.value.trim().length > 0 && // ✅ NEW
+    customerEmail.value.trim().length > 0 &&
     isNameValid.value &&
     isPhoneValid.value &&
-    isEmailValid.value && // ✅ NEW
+    isEmailValid.value &&
     cartState.items.length > 0
 );
 
-// ---------- CHECKOUT ----------
+// ---------- CHECKOUT FLOW ----------
 async function submitOrder() {
+  // Prevent submit if any validation fails
   if (!isFormValid.value) return;
 
   isSubmitting.value = true;
   successMessage.value = "";
   errorMessage.value = "";
 
+  // Build the order payload sent to the backend
   const orderPayload = {
     name: customerName.value.trim(),
     phone: customerPhone.value.trim(),
-    email: customerEmail.value.trim(), // ✅ NEW
+    email: customerEmail.value.trim(),
     items: cartState.items.map((item) => ({
       lessonId: item._id,
       subject: item.subject,
@@ -69,7 +86,7 @@ async function submitOrder() {
   };
 
   try {
-    // 1) save order  🔁 now using hosted backend
+    // 1) Save order via backend /order endpoint
     const orderRes = await fetch(`${API_BASE}/order`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -90,12 +107,13 @@ async function submitOrder() {
       );
     }
 
-    // 2) update spaces  🔁 now using hosted backend
+    // 2) Prepare reduced payload for updating spaces
     const spacesPayload = orderPayload.items.map((item) => ({
       lessonId: item.lessonId,
       quantity: item.quantity,
     }));
 
+    // Call /update-spaces on the backend to reduce lesson spaces
     const updateRes = await fetch(`${API_BASE}/update-spaces`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -116,13 +134,14 @@ async function submitOrder() {
       );
     }
 
-    // success
+    // If both requests succeeded: show success + clear cart + reset form
     successMessage.value = "Your order has been submitted successfully! 🎉";
     clearCart();
     customerName.value = "";
     customerPhone.value = "";
-    customerEmail.value = ""; // ✅ clear email as well
+    customerEmail.value = "";
   } catch (err) {
+    // Any error in the flow is surfaced to the user
     console.error("Checkout error:", err);
     errorMessage.value =
       err.message ||
@@ -137,22 +156,23 @@ async function submitOrder() {
   <div class="cart-page">
     <h1 class="cart-title">Your Cart</h1>
 
-    <!-- ✅ show nice thank-you state when an order has just been placed -->
+    <!-- Success state: shown after a successful order -->
     <div v-if="successMessage" class="success-panel">
       <p class="success-main">{{ successMessage }}</p>
       <p class="success-sub">
-        We’ve received your booking. You’ll get a confirmation from the tutor soon.
+        We’ve received your booking. You’ll get a confirmation from the tutor
+        soon.
       </p>
     </div>
 
-    <!-- show empty message only when there is NO successMessage -->
+    <!-- Empty cart state (only if there was no recent success) -->
     <div v-else-if="cartState.items.length === 0" class="cart-empty">
       Your cart is empty. 🛒
     </div>
 
-    <!-- otherwise show normal cart + checkout -->
+    <!-- Normal state: cart items + checkout form -->
     <div v-else class="cart-layout">
-      <!-- LEFT: cart items -->
+      <!-- LEFT: list of items in the cart -->
       <div class="cart-list">
         <div
           v-for="item in cartState.items"
@@ -171,19 +191,22 @@ async function submitOrder() {
             <p class="cart-subtotal">
               £{{ item.price * item.quantity }}
             </p>
+
+            <!-- Remove a single unit from the cart -->
             <button class="cart-remove" @click="removeOneFromCart(item._id)">
               Remove
             </button>
           </div>
         </div>
 
+        <!-- Summary row for total cart value -->
         <div class="cart-total-row">
           <span>Total:</span>
           <span class="cart-total-amount">£{{ cartTotal }}</span>
         </div>
       </div>
 
-      <!-- RIGHT: checkout form -->
+      <!-- RIGHT: checkout form with validation messages -->
       <div class="checkout-card">
         <h2 class="checkout-title">Checkout</h2>
 
@@ -200,7 +223,7 @@ async function submitOrder() {
           </p>
         </div>
 
-        <!-- email field -->
+        <!-- Email input with live validation feedback -->
         <div class="form-group">
           <label for="email">Email address</label>
           <input
@@ -227,6 +250,7 @@ async function submitOrder() {
           </p>
         </div>
 
+        <!-- Button disabled until form + cart are valid -->
         <button
           class="checkout-btn"
           :disabled="!isFormValid || isSubmitting"
@@ -236,6 +260,7 @@ async function submitOrder() {
           <span v-else>Submitting...</span>
         </button>
 
+        <!-- Generic error message for API failures -->
         <p v-if="errorMessage" class="error-message">
           {{ errorMessage }}
         </p>
@@ -245,6 +270,7 @@ async function submitOrder() {
 </template>
 
 <style scoped>
+/* Layout container for the cart page */
 .cart-page {
   max-width: 1100px;
   margin: 3rem auto;
@@ -288,6 +314,7 @@ async function submitOrder() {
   color: #4a5759;
 }
 
+/* main two-column layout for cart + checkout */
 .cart-layout {
   display: grid;
   grid-template-columns: 2fr 1.1fr;
@@ -357,7 +384,7 @@ async function submitOrder() {
   cursor: pointer;
 }
 
-/* total */
+/* total row */
 .cart-total-row {
   margin-top: 1.8rem;
   display: flex;
@@ -444,14 +471,14 @@ async function submitOrder() {
   opacity: 0.9;
 }
 
-/* messages */
+/* error message under button */
 .error-message {
   margin-top: 0.8rem;
   font-size: 0.9rem;
   color: #c0392b;
 }
 
-/* mobile */
+/* mobile tweaks */
 @media (max-width: 768px) {
   .cart-layout {
     grid-template-columns: 1fr;
