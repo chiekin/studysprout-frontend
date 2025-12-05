@@ -1,4 +1,5 @@
 <script setup>
+import { API_BASE } from "./apiConfig";
 import { ref, computed, onMounted, watch } from "vue";
 import { addToCart } from "./cartStore";
 
@@ -25,7 +26,7 @@ async function fetchAllLessons() {
   try {
     loading.value = true;
     error.value = "";
-    const res = await fetch("http://localhost:3000/lessons");
+    const res = await fetch(`${API_BASE}/lessons`);
     if (!res.ok) throw new Error("Failed to fetch lessons");
     lessons.value = await res.json();
   } catch (err) {
@@ -41,7 +42,7 @@ async function fetchSearch(term) {
     loading.value = true;
     error.value = "";
     const res = await fetch(
-      "http://localhost:3000/search?q=" + encodeURIComponent(term)
+      `${API_BASE}/search?q=${encodeURIComponent(term)}`
     );
     if (!res.ok) throw new Error("Search request failed");
     lessons.value = await res.json();
@@ -52,6 +53,7 @@ async function fetchSearch(term) {
     loading.value = false;
   }
 }
+
 
 // ----- DEBOUNCE -----
 function debounce(fn, delay = 400) {
